@@ -1,0 +1,319 @@
+<aura:component implements="force:lightningQuickAction,force:appHostable,force:hasRecordId,forceCommunity:availableForAllPageTypes,flexipage:availableforallpagetypes" access="global" controller="AssessmentController">
+    <aura:attribute name="cont" type="Contact" default="{'sobjectType':'Contact','ABAWD_Status__c':'','Are_you_currently_employed__c':'','Are_you_currently_receiving_unemployment__c':'',
+                        'Birthdate':'','Ethnicity__c':'','Primary_Language__c':'','Do_you_have_ahigh_school_diploma_or_GED__c':'',
+                        'DSS_Client_Number__c':'','Education_Level__c':'','Email':'','Employment_Status__c':'','FirstName':'',
+                        'Gender__c':'','Phone':'','How_did_you_hear_about_this_program__c':'','Id':'','Name':'',
+                        'Identify_strengths_skills_and_interests__c':'','LastName':'','List_all_colleges_you_have_attended__c':'',
+                        'MobilePhone':'','MailingCity':'','MailingCountry':'','MailingPostalCode':'','MailingState':'','MailingStreet':'',
+                        'Provider_Name__c':'','Phone':'','Race__c':'','SSN__c':'','SNAP_ET_Eligibility_Status__c':''}"/>
+    <aura:attribute name="duplicatecontname" type="string"/>
+    <aura:attribute name="emplist" type="Employment_History__c[]"/>
+    <aura:handler name="change" value="{!v.changecontid}" action="{!c.handleValueChange}"/>
+    <aura:attribute name="contid" type="string" />
+    <aura:attribute name="nishid" type="string" />
+    <aura:attribute name="frombackbutton" type="boolean" default="false" />
+    <aura:attribute name="changecontid" type="string" />
+    <aura:attribute name="duplicatessn" type="boolean" default="false"/>
+    <aura:attribute name="participantName" type="string" />
+    <aura:attribute name="contestID" type="string" />
+    <aura:attribute name="participantClientNum" type="string" />
+    <aura:attribute name="participantEmpStatus" type="string" />
+    <aura:attribute name="partEligibility" type="string" />
+    <aura:attribute name="hascontact" type="boolean" default="false"/>
+    <aura:handler name="init" value="{! this }" action="{! c.onInit }"/> 
+    <aura:attribute name="selTabId" type="string" />
+    <aura:attribute name="dataColumns" type="List"/> 
+    <aura:attribute name="DataValues" type="Object"/>
+    <aura:attribute name="hasEmpHistError" type="boolean" default="FALSE"/>
+    <aura:attribute name="EmpHisterrorMsg" type="String"/>
+    <aura:attribute name="haschangedass" type="boolean" default="false"/>
+    <aura:attribute name="initialLoadAss" type="string"/>
+    <aura:attribute name="hasduplicate" type="boolean" default="false"/>
+    <aura:attribute name="nothaschangedassonsave" type="boolean" default="true"/>
+    <aura:attribute name="issave" type="boolean" default="false"/>
+    <aura:method name="savenext" action="{!c.savenext}" />
+    <aura:method name="reInit" action="{!c.onInit}" />
+    <aura:method name="notInitLoad" action="{!c.notInitLoad}" />
+    <aura:method name="onHome" action="{!c.fromHomeLoad}" >
+        <aura:attribute name="cId" type="String" />
+    </aura:method>
+
+   
+
+    <lightning:recordEditForm aura:id="formcnt"
+                              objectApiName="Contact"
+                              class="slds-card__body_inner">
+        
+        <lightning:messages/>
+        <div class="slds-m-around--medium bordertext">
+            <div class="slds-m-around--xx-large">
+                <div class="container-fluid">
+                    <c:CustomLookup 
+                                    objectAPIName="Contact" 
+                                    label="Participant" showAddNew = "false" IconName ="standard:contact"
+                                    returnFields="['Name','DSS_Client_Number__c','Provider_Name__c']" 
+                                    queryFields="['Name','DSS_Client_Number__c','Provider_Name__c']" placeholder = "Search Participants"
+                                    selectedId="{!v.changecontid}" selectedName = "{!v.cont.Name}"
+                                   filter = "RecordType.DeveloperName = 'Participant'"/>
+                </div>
+                <div >
+                    <lightning:inputField variant="label-inline" onchange="{!c.onValueChange}" name="fname" fieldName="FirstName" required="true" value="{!v.cont.FirstName}" />
+                </div> 
+                <div >
+                    <lightning:inputField variant="label-inline" onchange="{!c.onValueChange}" name="lname" fieldName="LastName" required="true" value="{!v.cont.LastName}" />
+                </div>
+                <div >
+                    
+                    <lightning:inputField variant="label-inline" onchange="{!c.onValueChange}" name="cnumber" fieldName="DSS_Client_Number__c" required="true" value="{!v.cont.DSS_Client_Number__c}" />
+                </div>
+                <div >
+                    <lightning:inputField variant="label-inline" onchange="{!c.onValueChange}" name="race" fieldName="Race__c" required="true" value="{!v.cont.Race__c}" />
+                </div>
+                <div >
+                    <lightning:inputField variant="label-inline" onchange="{!c.onValueChange}" name="ethnicity" fieldName="Ethnicity__c" required="true" value="{!v.cont.Ethnicity__c}" />
+                </div>
+                <div >
+                    <lightning:inputField variant="label-inline" onchange="{!c.onValueChange}" name="planguage" fieldName="Primary_Language__c" required="true" value="{!v.cont.Primary_Language__c}" />
+                </div>
+                <div >
+                    <lightning:input variant="label-inline" onchange="{!c.onValueChange}" name="dobdate" type="date" required="true" label="Date of Birth" value="{!v.cont.Birthdate}" />
+                </div> 
+                <div >
+                    <lightning:inputField variant="label-inline" onchange="{!c.onValueChange}" name="ssn"  fieldName="SSN__c" required="true" value="{!v.cont.SSN__c}" />
+                </div>
+                <div >
+                    <lightning:inputField variant="label-inline" onchange="{!c.onValueChange}" name="gender" fieldName="Gender__c" required="true" value="{!v.cont.Gender__c}" />
+                </div>
+                <div >
+                    <lightning:inputField variant="label-inline" onchange="{!c.onValueChange}" name="hwprogram" fieldName="How_did_you_hear_about_this_program__c" value="{!v.cont.How_did_you_hear_about_this_program__c}" />
+                </div>
+            </div>
+        </div>
+        <h3 class="slds-section-title--divider">Education Information</h3>
+        <div class="slds-m-around--medium bordertext">
+            <div class="slds-m-around--xx-large">
+                <div >
+                    <lightning:inputField variant="label-inline" onchange="{!c.onValueChange}" name="hvdiploma" fieldName="Do_you_have_ahigh_school_diploma_or_GED__c" required="true" value="{!v.cont.Do_you_have_ahigh_school_diploma_or_GED__c}" />
+                </div>
+                <div >
+                    <lightning:inputField variant="label-inline" onchange="{!c.onValueChange}" name="elevel" fieldName="Education_Level__c" value="{!v.cont.Education_Level__c}" />
+                </div>
+                <div >
+                    <lightning:inputField variant="label-inline" onchange="{!c.onValueChange}" name="lstcolleges" fieldName="List_all_colleges_you_have_attended__c" value="{!v.cont.List_all_colleges_you_have_attended__c}" />
+                </div>
+                <div>
+                    <lightning:textarea variant="label-inline" onchange="{!c.onValueChange}" name="lstskills" type="textarealong" label="Identify strengths, skills and interests that will help you reach your career goal:" value="{!v.cont.Identify_strengths_skills_and_interests__c}" />
+                </div>
+            </div>
+        </div>
+        <h3 class="slds-section-title--divider">Employability Information</h3>
+        <div class="slds-m-around--medium bordertext">
+            <div class="slds-m-around--xx-large">
+                <div >
+                    <lightning:inputField variant="label-inline" onchange="{!c.onValueChange}" name="curemployed" fieldName="Are_you_currently_employed__c" required="true" value="{!v.cont.Are_you_currently_employed__c}" />
+                </div>
+                <div >
+                    <lightning:inputField variant="label-inline" onchange="{!c.onValueChange}" name="empstatus" fieldName="Employment_Status__c" value="{!v.cont.Employment_Status__c}" />
+                </div>
+                <div >
+                    <lightning:inputField variant="label-inline" onchange="{!c.onValueChange}" name="recunemp" fieldName="Are_you_currently_receiving_unemployment__c" value="{!v.cont.Are_you_currently_receiving_unemployment__c}" />
+                </div>
+            </div>
+        </div>
+        <div class="slds-section-title--divider">
+            <table>
+                <tr>
+                    <td>
+                        <h3>Employment History</h3>
+                    </td>
+                    <td align='right'>
+                        <lightning:buttonIcon iconName="utility:add"  size="small" variant="brand" alternativeText="Add" onclick="{!c.addRow}"  class="right"/>
+                    </td>
+                </tr>
+            </table>    
+        </div>
+        <aura:if isTrue="{!not(or(v.DataValues.length,v.emplist.length))}">
+            <div class ="slds-m-around--xx-large"> </div>
+        </aura:if>
+        <aura:if isTrue="{!or(v.DataValues.length,v.emplist.length)}">
+            <div class="slds-m-around--medium bordertext">
+                <div class="slds-m-left--medium slds-m-right--medium">
+                    <aura:if isTrue="{!v.DataValues.length}">
+                        <div style="{! (v.DataValues.length == 1 ? 'height: 100px;' : (v.DataValues.length == 2 ? 'height: 125px;' : 'height: 165px;')) }">
+                            <div style="{! (v.DataValues.length == 1 ? 'height: 75px;' : (v.DataValues.length == 2 ? 'height: 105px;' : 'height: 140px;')) }">
+                                <lightning:datatable aura:id="dataTable"
+                                                     columns="{!v.dataColumns}"
+                                                     data="{!v.DataValues}"
+                                                     keyField="Id"
+                                                     hideCheckboxColumn="true" class="slds-m-around--large slds-p-right--medium tablecolor"/>
+                            </div>
+                        </div>
+                        
+                    </aura:if>
+                </div>
+                <aura:if isTrue="{!v.hasEmpHistError}">
+                    <div class="slds-align_absolute-center slds-p-bottom_x-small slds-p-top_x-small slds-text-color_error">
+                        <ui:outputText value="{!v.EmpHisterrorMsg}"/>
+                    </div>
+                </aura:if>
+                <aura:if isTrue="{!v.emplist.length}">
+                    <br></br>
+                    <table class="slds-table slds-table_cell-buffer"> 
+                        <tbody>      
+                            <aura:iteration items="{!v.emplist}" var="emp" indexVar="index">
+                                <tr>
+                                    <td>
+                                        <lightning:input name="name" type="text" required="true" maxlength="40" label="Employer Name" value="{!emp.Name}" />
+                                    </td>
+                                    <td>
+                                        <lightning:textarea name="empadd" type="textarealong" label="Employer Address" value="{!emp.Employer_Address__c}" />
+                                    </td>
+                                    <td>
+                                        <lightning:input name="ptitle" type="text" label="Position Title" value="{!emp.Position_Title__c}" />
+                                    </td>
+                                    <td>
+                                        <lightning:input name="hours" type="text" label="Hours/Week" value="{!emp.Hours_Week__c}" />
+                                    </td>
+                                    <td>
+                                        <lightning:input name="sdate" type="date" label="Start Date" value="{!emp.Start_Date__c}" />
+                                    </td>
+                                    <td>
+                                        <lightning:input name="edate" type="date" label="End Date" value="{!emp.End_Date__c}" />
+                                    </td>
+                                    <td>
+                                        <lightning:input name="rslvng" type="text" label="Reason for Leaving" value="{!emp.Reason_for_Leaving__c}" />
+                                    </td>
+                                    <td>
+                                        <a onclick="{!c.removeRow}" data-record="{!index}">
+                                            <lightning:icon iconName="utility:delete" size="small" alternativeText="Delete"/>
+                                            <span class="slds-assistive-text">Delete</span>
+                                        </a>
+                                    </td> 
+                                </tr>
+                            </aura:iteration>
+                        </tbody>
+                    </table>
+                    <br></br>
+                </aura:if>
+            </div>
+        </aura:if>
+        <h3 class="slds-section-title--divider slds-m-top--large">Contact Information</h3>
+        <div class="slds-m-around--medium bordertext">
+            <div class="slds-m-around--xx-large">
+                <div>
+                    <lightning:inputAddress onchange="{!c.onValueChange}" variant="label-inline" addressLabel="Residential Address" streetLabel="Residential Street" cityLabel="Residential City"
+                                            countryLabel="Residential Country" provinceLabel="Residential State" postalCodeLabel="Residential Zip Code"
+                                            street="{!v.cont.MailingStreet}" city="{!v.cont.MailingCity}" country="{!v.cont.MailingCountry}" province="{!v.cont.MailingState}" postalCode="{!v.cont.MailingPostalCode}"
+                                            required="true"
+                                            />
+                </div>
+                <div >
+                    <lightning:input variant="label-inline" onchange="{!c.onValueChange}" name="homephone" type="tel" label="Phone Number" value="{!v.cont.Phone}" />
+                </div>
+                <div >
+                    <lightning:input variant="label-inline" onchange="{!c.onValueChange}" name="cellphone" type="tel"  label="Cell Number" value="{!v.cont.MobilePhone}" />
+                </div>
+                <div >
+                    <lightning:input variant="label-inline" onchange="{!c.onValueChange}" name="email" type="email" label="Email Contact" value="{!v.cont.Email}" />
+                </div>
+            </div>
+        </div>
+        <h3 class="slds-section-title--divider">Eligibility Information</h3>
+        <div class="slds-m-around--medium bordertext">
+            <div class="slds-m-around--xx-large">
+                <!-- <div >
+                    <lightning:inputField variant="label-inline" name="snapelstatus" fieldName="SNAP_ET_Eligibility_Status__c" disabled = "true" value="{!v.cont.SNAP_ET_Eligibility_Status__c}" />
+                </div>
+                <div >
+                    <lightning:inputField variant="label-inline" name="abawdstatus" fieldName="ABAWD_Status__c" disabled = "true" value="{!v.cont.ABAWD_Status__c}" />
+                </div> -->
+                <!-- <aura:if isTrue="{!v.frombackbutton}">
+                    <div >
+                        {!v.frombackbutton}
+                        {!v.nishid}
+                    
+                        <lightning:recordViewForm recordId="{!v.nishid}" objectApiName="Contact">
+                <div class=" slds-theme_default">
+                    <lightning:outputField fieldName="SNAP_ET_Eligibility_Status__c" />
+                </div>
+                <div class=" slds-theme_default">
+                    <lightning:outputField fieldName="ABAWD_Status__c" />
+                </div>
+            </lightning:recordViewForm>
+        </div>
+    <aura:set attribute="else">
+        <div >
+            {!v.frombackbutton}
+                    <lightning:inputField variant="label-inline" name="snapelstatus" fieldName="SNAP_ET_Eligibility_Status__c" disabled = "true" value="{!v.cont.SNAP_ET_Eligibility_Status__c}" />
+                </div>
+                <div >
+                    <lightning:inputField variant="label-inline" name="abawdstatus" fieldName="ABAWD_Status__c" disabled = "true" value="{!v.cont.ABAWD_Status__c}" />
+                </div>
+    </aura:set>
+</aura:if> -->
+
+<aura:if isTrue="{!or(empty(v.changecontid), and(v.frombackbutton, empty(v.changecontid)))}">
+    
+    <lightning:recordViewForm recordId="{!v.nishid}" objectApiName="Contact">
+        <div class=" slds-theme_default">
+            <lightning:outputField fieldName="SNAP_ET_Eligibility_Status__c" />
+        </div>
+        <div class=" slds-theme_default">
+            <lightning:outputField fieldName="ABAWD_Status__c" />
+        </div>
+    </lightning:recordViewForm>
+</aura:if>
+<aura:if isTrue="{!not(empty(v.changecontid))}">
+        
+      <div >
+                    <lightning:inputField variant="label-inline" name="snapelstatus" fieldName="SNAP_ET_Eligibility_Status__c" disabled = "true" value="{!v.cont.SNAP_ET_Eligibility_Status__c}" />
+                </div>
+                <div >
+                    <lightning:inputField variant="label-inline" name="abawdstatus" fieldName="ABAWD_Status__c" disabled = "true" value="{!v.cont.ABAWD_Status__c}" />
+                </div>
+   
+ </aura:if> 
+                
+            </div>
+        </div>
+    </lightning:recordEditForm>
+    
+    <aura:if isTrue="{!v.hasduplicate}">
+        
+        <!-- Modal/Popup Box starts here-->
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <!-- Modal/Popup Box Header Starts here-->
+                <header class="slds-modal__header yellowstylecolor">
+                    <lightning:buttonIcon iconName="utility:close"
+                                          onclick="{! c.closeDetails }"
+                                          alternativeText="close"
+                                          variant="bare-inverse"
+                                          class="slds-modal__close"/>
+                    
+                    <div class=" slds-float_left">
+                        <lightning:icon iconName="utility:warning" alternativeText="Warning!" title="Warning" size="small"/>
+                        &nbsp;&nbsp;<b>Warning</b>
+                    </div>
+                </header>
+                <!--Modal/Popup Box Body Starts here-->
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                    Participant <b><ui:outputText value="{!v.duplicatecontname}"/></b> exists in the system, if you hit continue existing participant will be updated. Please ensure accuracy of Information or Select the Participant. 
+                </div>
+                <!--Modal/Popup Box Footer Starts here-->
+                <footer class="slds-modal__footer">
+                    <lightning:button variant="neutral"
+                                      label="Cancel"
+                                      title="Cancel"
+                                      onclick="{! c.closeDetails }"/>
+                    <lightning:button variant="brand"
+                                      label="Continue"
+                                      title="Continue"
+                                      onclick="{!c.duplicateContinue}"  />
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </aura:if>
+    
+</aura:component>
