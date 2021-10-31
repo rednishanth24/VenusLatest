@@ -1,0 +1,124 @@
+<aura:component controller="CreateNoteController" 
+                implements="lightning:actionOverride,force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickActionWithoutHeader" 
+                access="global" >
+    <aura:attribute name="note" type="ContentNote" default="{'sobjectType': 'ContentNote','Title': '','Content': ''}"/>
+    <aura:attribute name="hascontact" type="boolean" default="false"/>
+    <aura:attribute name="selTabId" type="string" />
+    <aura:attribute name="noteTitle" type="string" />
+    <aura:attribute name="noteContent" type="string" />
+    <aura:attribute name="hasNoteChange" type="boolean" default="false"/>
+    <aura:attribute name="isSaveNote" type="boolean" default="false"/>
+    <aura:handler name="change" value="{!v.noteTitle}" action="{!c.handleValueChange}"/>
+    <aura:handler name="change" value="{!v.noteContent}" action="{!c.handleValueChange}"/>
+    <aura:attribute name="contId" type="string" />
+    <aura:attribute name="dataColumns" type="List"/> 
+    <aura:attribute name="isview" type="boolean" default="false"/>
+    <aura:attribute name="viewnote" type="ContentNote"/>
+    <aura:attribute name="notesList" type="ContentNote[]"/>
+    <aura:handler name="init" value="{! this }" action="{! c.onInit }"/> 
+    <aura:method name="saveNote" action="{!c.saveNote}" />
+    <aura:method name="reInit" action="{!c.onInit}" />
+    <aura:if isTrue="{!not(v.hascontact)}">
+        <h1 class="slds-section-title--divider slds-text-heading_small slds-align_absolute-center">Case Notes</h1>
+        <div class="slds-align_absolute-center slds-p-bottom_x-small slds-p-top_x-small slds-text-color_error">
+            <ui:outputText value="Please select the Participant from Assessment Screen"/>
+        </div>
+    </aura:if>
+    
+    <aura:if isTrue="{!v.hascontact}">
+        <div class="slds-m-around--medium">
+            <h3 class="slds-section-title--divider">New Case Note</h3>
+            <div class="slds-m-around--medium">
+                <b style = "color:rgb(194, 57, 52)">*</b><b>Title:</b>
+                <br/>
+                <ui:inputText value="{!v.noteTitle}" />
+                <br/>
+                <b style = "color:rgb(194, 57, 52)">*</b><b>Content:</b>
+                <br/>
+                <lightning:inputRichText value="{!v.noteContent}" placeholder="Type something interesting"/>
+                <br/>
+            </div>
+        </div>
+        
+        <aura:if isTrue="{!v.notesList.length}">
+            <div class="slds-m-around--medium">
+                <h3 class="slds-section-title--divider">Case Notes History</h3>
+                <div class="slds-m-around--medium bordertext">
+                    <div class="slds-m-around--large" style="{! (v.notesList.length > 4 ? 'height: 300px;' : '') }">
+                        <div style="{! (v.notesList.length > 4 ? 'height: 285px;' : '') }">
+                            <lightning:datatable data="{! v.notesList }" 
+                                                 columns="{! v.dataColumns }" 
+                                                 keyField="Id"
+                                                 hideCheckboxColumn="true" 
+                                                 onrowaction="{!c.rowActions}" class="slds-m-around--large slds-p-right--medium tablecolor"/>
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aura:if>
+        <aura:if isTrue="{!v.isview}">
+            <!-- Modal/Popup Box starts here-->
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <!-- Modal/Popup Box Header Starts here-->
+                    <header class="slds-modal__header">
+                        <lightning:buttonIcon iconName="utility:close"
+                                              onclick="{! c.closeView}"
+                                              alternativeText="close"
+                                              variant="bare-inverse"
+                                              class="slds-modal__close"/>
+                        <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Case Note</h2>
+                    </header>
+                    <!--Modal/Popup Box Body Starts here-->
+                    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                         <div class="slds-grid ">
+                            <div class="slds-col slds-size_5-of-12 slds-form-element_horizontal slds-form-element">
+                                <label class="slds-form-element__label">Title:</label>
+                            </div>
+                            <div class="slds-col slds-size_7-of-12 slds-form-element_horizontal slds-form-element">
+                                <ui:outputText  value="{!v.viewnote.Title}"/>
+                            </div>
+                            
+                        </div>
+                        <div class="slds-grid ">
+                            <div class="slds-col slds-size_5-of-12 slds-form-element_horizontal slds-form-element">
+                                <label class="slds-form-element__label" >Content:</label>
+                            </div>
+                            <div class="slds-col slds-size_7-of-12 slds-form-element_horizontal slds-form-element">
+                                <lightning:formattedRichText  value="{!v.viewnote.HTMLContent}"/>
+                            </div>
+                            
+                        </div>
+                        <div class="slds-grid ">
+                            <div class="slds-col slds-size_5-of-12 slds-form-element_horizontal slds-form-element">
+                                <label class="slds-form-element__label">Created Date:</label>
+                            </div>
+                            <div class="slds-col slds-size_7-of-12 slds-form-element_horizontal slds-form-element">
+                                <ui:outputDate format="MM/DD/YYYY" value="{!v.viewnote.CreatedDate}"/>
+                            </div>
+                            
+                        </div>
+                        <div class="slds-grid">
+                            <div class="slds-col slds-size_5-of-12 slds-form-element_horizontal slds-form-element">
+                                <label class="slds-form-element__label">Created By:</label>
+                            </div>
+                            <div class="slds-col slds-size_7-of-12 slds-form-element_horizontal slds-form-element">
+                                <ui:outputText  value="{!v.viewnote.Createdby}"/>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    <!--Modal/Popup Box Footer Starts here-->
+                    <footer class="slds-modal__footer">
+                        <lightning:button variant="brand"
+                                          label="Close"
+                                          title="Close"
+                                          onclick="{!c.closeView}"/>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </aura:if>
+    </aura:if>
+</aura:component>
